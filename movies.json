@@ -1,0 +1,16 @@
+[
+  {
+    "title": "Transformers: Rise of the Beasts",
+    "poster": "https://image.tmdb.org/t/p/w500/transformers.jpg",
+    "embed": "https://www.dailymotion.com/embed/video/x8example",
+    "genre": "Action",
+    "year": "2023"
+  },
+  {
+    "title": "Spider-Man: No Way Home",
+    "poster": "https://image.tmdb.org/t/p/w500/spiderman.jpg",
+    "embed": "https://www.dailymotion.com/embed/video/x7example",
+    "genre": "Action",
+    "year": "2021"
+  }
+]
