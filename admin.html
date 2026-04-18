@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h2>ADMIN PANEL</h2>
+
+<input id="title" placeholder="Judul">
+<input id="poster" placeholder="Poster URL">
+<input id="video" placeholder="Video URL">
+<input id="genre" placeholder="Genre">
+
+<button onclick="addFilm()">Tambah</button>
+
+<script>
+function addFilm(){
+  let films = JSON.parse(localStorage.getItem("films")) || [];
+
+  films.push({
+    title: title.value,
+    poster: poster.value,
+    video: video.value,
+    genre: genre.value,
+    views: 0
+  });
+
+  localStorage.setItem("films", JSON.stringify(films));
+  alert("Film ditambahkan");
+}
+</script>
+
+</body>
+</html>
