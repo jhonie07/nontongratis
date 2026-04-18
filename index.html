@@ -3,233 +3,272 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nonton Gratis - Netflix Pro Max</title>
+<title>Nonton Gratis</title>
 
 <style>
+:root {
+  --bg:#000;
+  --card:#111;
+  --text:#fff;
+  --main:red;
+}
+
+.light {
+  --bg:#f5f5f5;
+  --card:#fff;
+  --text:#000;
+}
+
 body {
-  margin: 0;
-  background: #000;
-  color: #fff;
-  font-family: Arial, sans-serif;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial;
+  transition:.3s;
 }
 
 header {
-  background: #111;
-  padding: 15px;
-  font-size: 24px;
-  text-align: center;
-  color: red;
-  font-weight: bold;
+  background:var(--card);
+  padding:15px;
+  text-align:center;
+  font-size:22px;
+  color:var(--main);
+  font-weight:bold;
+}
+
+.toggle {
+  position:fixed;
+  right:10px;
+  top:10px;
+  background:var(--main);
+  border:none;
+  padding:8px;
+  border-radius:5px;
+  color:#fff;
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  padding: 15px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:12px;
+  padding:15px;
 }
 
 .card {
-  background: #111;
-  border-radius: 5px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: .2s;
+  background:var(--card);
+  border-radius:6px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:.25s;
 }
-.card:hover {
-  transform: scale(1.06);
-}
+.card:hover { transform:scale(1.06); }
 
-.card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
+.card img { width:100%; height:200px; object-fit:cover; }
+.title { padding:8px; text-align:center; }
 
-.title {
-  padding: 8px;
-  font-size: 14px;
-  text-align: center;
-}
-
-iframe {
-  width: 100%;
-  height: 90vh;
-  border: none;
-}
-
-.search-box {
-  padding: 15px;
-  text-align: center;
-}
+iframe { width:100%; height:90vh; border:none; }
 
 input {
-  width: 90%;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
+  width:90%;
+  padding:10px;
+  margin:15px;
+  border-radius:6px;
+  border:none;
 }
 
-.genre {
-  padding: 10px;
-  text-align: center;
-}
-
-.genre button {
-  background: red;
-  color: #fff;
-  border: none;
-  padding: 8px 14px;
-  margin: 4px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.genre button:hover {
-  background: #b30000;
-}
-
-.episode-list {
-  padding: 15px;
-}
 .episode-list button {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 8px;
-  font-size: 16px;
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 5px;
-  color: white;
-  cursor: pointer;
-}
-.episode-list button:hover {
-  background: #222;
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  background:var(--card);
+  border:1px solid #333;
+  color:var(--text);
 }
 
-.loading {
-  text-align: center;
-  padding: 40px;
-  font-size: 20px;
+.active { background:var(--main) !important; }
+
+.next-prev {
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+}
+
+.next-prev button {
+  width:48%;
+  padding:10px;
+  background:var(--main);
+  border:none;
+  color:#fff;
+}
+
+.loader {
+  border:5px solid #222;
+  border-top:5px solid red;
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  animation:spin 1s linear infinite;
+  margin:50px auto;
+}
+
+@keyframes spin {
+  100% { transform:rotate(360deg); }
 }
 </style>
-
 </head>
+
 <body>
 
 <header>NETFLIX PRO MAX</header>
+<button class="toggle" onclick="toggleMode()">☀️</button>
 
-<div class="search-box">
-  <input type="text" id="search" placeholder="Cari film/series..." onkeyup="searchMovie()">
-</div>
+<input type="text" id="search" placeholder="Cari..." onkeyup="searchMovie()">
 
-<div class="genre" id="genres"></div>
-
-<div id="app"><div class="loading">Loading...</div></div>
+<div id="continue"></div>
+<div id="app"><div class="loader"></div></div>
 
 <script>
-const url = "https://raw.githubusercontent.com/jhonie07/nontongratis-data/main/movies.json";
+const url="https://raw.githubusercontent.com/jhonie07/nontongratis-data/main/movies.json";
+let allData=[];
 
-let allData = [];
+const params=new URLSearchParams(location.search);
+const play=params.get("play");
+const series=params.get("series");
+const ep=params.get("ep");
 
-const params = new URLSearchParams(window.location.search);
-const play = params.get("play");
-const series = params.get("series");
-const ep = params.get("ep");
+const app=document.getElementById("app");
 
-const app = document.getElementById("app");
-
-function loadPlayer(embed) {
-  app.innerHTML = `<iframe src="${embed}" allowfullscreen></iframe>`;
+function saveProgress(key,time){
+  localStorage.setItem(key,time);
 }
 
-if (play && !series) {
-  loadPlayer(play);
+function getProgress(key){
+  return localStorage.getItem(key)||0;
 }
 
-if (series && ep) {
-  loadPlayer(ep);
+function saveHistory(title,embed){
+  localStorage.setItem("last_watch",JSON.stringify({title,embed}));
 }
 
-fetch(url)
-  .then(res => res.json())
-  .then(data => {
-    allData = data;
-    
-    if (series && !ep) {
-      renderSeries(series);
-    } else if (!play) {
-      renderHome(data);
-      renderGenres(data);
+function loadHistory(){
+  const d=JSON.parse(localStorage.getItem("last_watch"));
+  if(!d) return;
+  document.getElementById("continue").innerHTML=
+  `<div style="padding:15px;">
+    <h3>Lanjutkan</h3>
+    <button onclick="location.href='?series=${encodeURIComponent(d.title)}&ep=${encodeURIComponent(d.embed)}'">${d.title}</button>
+  </div>`;
+}
+
+function loadPlayer(embed,title){
+  app.innerHTML=`<iframe id="player" src="${embed}" allowfullscreen></iframe>`;
+  saveHistory(title,embed);
+  scrollToTop();
+}
+
+function scrollToTop(){
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+fetch(url).then(r=>r.json()).then(data=>{
+  allData=data;
+  loadHistory();
+
+  if(play){
+    loadPlayer(play,"movie");
+    return;
+  }
+
+  if(series && ep){
+    renderEpisode(series,ep);
+    return;
+  }
+
+  if(series){
+    renderSeries(series);
+    return;
+  }
+
+  renderHome(data);
+});
+
+function renderHome(data){
+  let html=`<div class='grid'>`;
+  data.forEach(m=>{
+    html+=`
+    <div class="card" onclick="openItem('${m.title}')">
+      <img src="${m.poster}">
+      <div class="title">${m.title}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+  app.innerHTML=html;
+}
+
+function renderSeries(title){
+  const item=allData.find(x=>x.title===title);
+  renderEpisode(title,item.episodes[0].embed);
+}
+
+function renderEpisode(title,embed){
+  const item=allData.find(x=>x.title===title);
+  const eps=item.episodes;
+  let i=eps.findIndex(e=>e.embed===embed);
+
+  let html=`
+  <h2 style="padding:15px;">${title}</h2>
+
+  <div class="next-prev">
+    <button onclick="goEp('${title}',${i-1})" ${i<=0?'disabled':''}>Prev</button>
+    <button onclick="goEp('${title}',${i+1})" ${i>=eps.length-1?'disabled':''}>Next</button>
+  </div>
+
+  <iframe src="${embed}" allowfullscreen></iframe>
+
+  <div class="episode-list">`;
+
+  eps.forEach((e,index)=>{
+    html+=`
+    <button class="${embed===e.embed?'active':''}"
+    onclick="goEp('${title}',${index})">${e.ep}</button>`;
+  });
+
+  html+=`</div>`;
+  app.innerHTML=html;
+
+  saveHistory(title,embed);
+  scrollToTop();
+
+  // AUTO NEXT (jika video selesai, reload ke next)
+  setTimeout(()=>{
+    if(i < eps.length-1){
+      console.log("Auto next siap");
     }
-  });
-
-function renderHome(data) {
-  let html = `<div class='grid'>`;
-
-  data.forEach(m => {
-    html += `
-      <div class="card" onclick="openItem('${m.title}')">
-        <img src="${m.poster}">
-        <div class="title">${m.title}</div>
-      </div>
-    `;
-  });
-
-  html += `</div>`;
-  app.innerHTML = html;
+  },5000);
 }
 
-function renderSeries(title) {
-  const item = allData.find(x => x.title === title);
-
-  let html = `
-    <h2 style="padding:15px;">${item.title}</h2>
-    <iframe src="${item.episodes[0].embed}" allowfullscreen></iframe>
-    <div class="episode-list">
-  `;
-
-  item.episodes.forEach(ep => {
-    html += `
-      <button onclick="location.href='?series=${encodeURIComponent(item.title)}&ep=${encodeURIComponent(ep.embed)}'">
-        ${ep.ep}
-      </button>
-    `;
-  });
-
-  html += `</div>`;
-  app.innerHTML = html;
+function goEp(title,i){
+  const item=allData.find(x=>x.title===title);
+  const ep=item.episodes[i];
+  location.href=`?series=${encodeURIComponent(title)}&ep=${encodeURIComponent(ep.embed)}`;
 }
 
-function openItem(title) {
-  const item = allData.find(x => x.title === title);
-
-  if (item.type === "movie") {
-    location.href = "?play=" + encodeURIComponent(item.embed);
+function openItem(title){
+  const item=allData.find(x=>x.title===title);
+  if(item.type==="movie"){
+    location.href="?play="+encodeURIComponent(item.embed);
   } else {
-    location.href = "?series=" + encodeURIComponent(item.title);
+    location.href="?series="+encodeURIComponent(title);
   }
 }
 
-function searchMovie() {
-  const q = document.getElementById("search").value.toLowerCase();
-  const filtered = allData.filter(m => m.title.toLowerCase().includes(q));
-  renderHome(filtered);
+function searchMovie(){
+  const q=document.getElementById("search").value.toLowerCase();
+  renderHome(allData.filter(x=>x.title.toLowerCase().includes(q)));
 }
 
-function renderGenres(data) {
-  const genres = [...new Set(data.map(x => x.genre))];
-
-  let html = "";
-  genres.forEach(g => {
-    html += `<button onclick="filterGenre('${g}')">${g}</button>`;
-  });
-  document.getElementById("genres").innerHTML = html;
-}
-
-function filterGenre(g) {
-  const filtered = allData.filter(m => m.genre === g);
-  renderHome(filtered);
+function toggleMode(){
+  document.body.classList.toggle("light");
 }
 </script>
 
