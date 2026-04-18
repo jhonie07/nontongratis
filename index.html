@@ -1,99 +1,236 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Nonton Gratis</title>
-
-<!-- SEO -->
-<meta name="description" content="Nonton film gratis full HD. Streaming mudah, cepat, anti ribet.">
-<meta name="keywords" content="nonton film gratis, streaming film, movie online, film indo, film terbaru">
-<meta name="robots" content="index,follow"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nonton Gratis - Netflix Pro Max</title>
 
 <style>
-body{
-  background:#000;
-  color:#fff;
-  margin:0;
-  font-family:Arial;
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
 }
 
-header{
-  padding:15px;
-  font-size:24px;
-  font-weight:bold;
-  text-align:center;
-  background:#111;
-  color:#e50914;
+header {
+  background: #111;
+  padding: 15px;
+  font-size: 24px;
+  text-align: center;
+  color: red;
+  font-weight: bold;
 }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  gap:12px;
-  padding:15px;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 15px;
 }
 
-.card{
-  background:#111;
-  border-radius:6px;
-  overflow:hidden;
-  cursor:pointer;
-  transition:.2s;
+.card {
+  background: #111;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: .2s;
+}
+.card:hover {
+  transform: scale(1.06);
 }
 
-.card:hover{ transform:scale(1.05); }
-
-.card img{
-  width:100%;
-  height:220px;
-  object-fit:cover;
+.card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
 }
 
-.title{
-  padding:8px;
-  text-align:center;
-  font-size:14px;
-  height:45px;
-  color:#fff;
+.title {
+  padding: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+iframe {
+  width: 100%;
+  height: 90vh;
+  border: none;
+}
+
+.search-box {
+  padding: 15px;
+  text-align: center;
+}
+
+input {
+  width: 90%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+}
+
+.genre {
+  padding: 10px;
+  text-align: center;
+}
+
+.genre button {
+  background: red;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  margin: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.genre button:hover {
+  background: #b30000;
+}
+
+.episode-list {
+  padding: 15px;
+}
+.episode-list button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 8px;
+  font-size: 16px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+.episode-list button:hover {
+  background: #222;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 20px;
 }
 </style>
+
 </head>
 <body>
 
-<header>NONTON GRATIS</header>
+<header>NETFLIX PRO MAX</header>
 
-<div id="movieList">Memuat...</div>
+<div class="search-box">
+  <input type="text" id="search" placeholder="Cari film/series..." onkeyup="searchMovie()">
+</div>
+
+<div class="genre" id="genres"></div>
+
+<div id="app"><div class="loading">Loading...</div></div>
 
 <script>
-async function loadMovies(){
-  const url = "https://raw.githubusercontent.com/jhonie07/nontongratis-data/refs/heads/main/movies.json";
+const url = "https://raw.githubusercontent.com/jhonie07/nontongratis-data/main/movies.json";
 
-  try{
-    const res = await fetch(url);
-    const data = await res.json();
+let allData = [];
 
-    let html = "<div class='grid'>";
+const params = new URLSearchParams(window.location.search);
+const play = params.get("play");
+const series = params.get("series");
+const ep = params.get("ep");
 
-    data.forEach(m=>{
-      html += `
-        <div class='card' onclick="location.href='player.html?url=${encodeURIComponent(m.embed)}'">
-          <img src="${m.poster}" />
-          <div class='title'>${m.title}</div>
-        </div>
-      `;
-    });
+const app = document.getElementById("app");
 
-    html += "</div>";
+function loadPlayer(embed) {
+  app.innerHTML = `<iframe src="${embed}" allowfullscreen></iframe>`;
+}
 
-    document.getElementById("movieList").innerHTML = html;
+if (play && !series) {
+  loadPlayer(play);
+}
 
-  }catch(e){
-    document.getElementById("movieList").innerHTML = "Gagal memuat data film!";
+if (series && ep) {
+  loadPlayer(ep);
+}
+
+fetch(url)
+  .then(res => res.json())
+  .then(data => {
+    allData = data;
+    
+    if (series && !ep) {
+      renderSeries(series);
+    } else if (!play) {
+      renderHome(data);
+      renderGenres(data);
+    }
+  });
+
+function renderHome(data) {
+  let html = `<div class='grid'>`;
+
+  data.forEach(m => {
+    html += `
+      <div class="card" onclick="openItem('${m.title}')">
+        <img src="${m.poster}">
+        <div class="title">${m.title}</div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  app.innerHTML = html;
+}
+
+function renderSeries(title) {
+  const item = allData.find(x => x.title === title);
+
+  let html = `
+    <h2 style="padding:15px;">${item.title}</h2>
+    <iframe src="${item.episodes[0].embed}" allowfullscreen></iframe>
+    <div class="episode-list">
+  `;
+
+  item.episodes.forEach(ep => {
+    html += `
+      <button onclick="location.href='?series=${encodeURIComponent(item.title)}&ep=${encodeURIComponent(ep.embed)}'">
+        ${ep.ep}
+      </button>
+    `;
+  });
+
+  html += `</div>`;
+  app.innerHTML = html;
+}
+
+function openItem(title) {
+  const item = allData.find(x => x.title === title);
+
+  if (item.type === "movie") {
+    location.href = "?play=" + encodeURIComponent(item.embed);
+  } else {
+    location.href = "?series=" + encodeURIComponent(item.title);
   }
 }
 
-loadMovies();
+function searchMovie() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const filtered = allData.filter(m => m.title.toLowerCase().includes(q));
+  renderHome(filtered);
+}
+
+function renderGenres(data) {
+  const genres = [...new Set(data.map(x => x.genre))];
+
+  let html = "";
+  genres.forEach(g => {
+    html += `<button onclick="filterGenre('${g}')">${g}</button>`;
+  });
+  document.getElementById("genres").innerHTML = html;
+}
+
+function filterGenre(g) {
+  const filtered = allData.filter(m => m.genre === g);
+  renderHome(filtered);
+}
 </script>
 
 </body>
