@@ -1,34 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <title>Player</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="assets/style.css">
-</head>
 
+<style>
+.player-box {
+    width: 100%;
+    height: 70vh;
+    background: #000;
+}
+.player-box iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+</style>
+
+</head>
 <body>
 
-<div class="player-container">
+<div class="player-box">
     <iframe id="videoFrame" allowfullscreen></iframe>
 </div>
 
 <h2 id="title"></h2>
+<p id="info"></p>
 
-<h3>Rekomendasi</h3>
-<div id="recommend"></div>
-
-<script>
-const url = new URLSearchParams(window.location.search);
-const videoUrl = url.get("play");
-const title = url.get("title");
-
-// SET IFARME
-document.getElementById("videoFrame").src = videoUrl;
-document.getElementById("title").innerText = title;
-</script>
+<h3>Episode</h3>
+<div id="episodes"></div>
 
 <script src="assets/script.js"></script>
+
 </body>
 </html>
