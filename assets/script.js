@@ -1,106 +1,115 @@
-/* ============================
-   NONTON GRATIS — GOD MODE JS
-   ============================ */
+// ==========================================
+// LOAD MOVIES
+// ==========================================
 
-const JSON_URL = "/movies.json";
-const movieContainer = document.getElementById("movies");
-const categoryContainer = document.getElementById("categories");
-const searchInput = document.getElementById("search");
+const url = "/movies.json";   // FIX WAJIB
 
-/* ============================
-   LOAD DATA UTAMA
-   ============================ */
 async function loadMovies() {
     try {
-        const req = await fetch(JSON_URL);
-        const data = await req.json();
+        const res = await fetch(url);
+        const data = await res.json();
 
-        // Flatten movie + series episodes
-        window.flatList = [];
+        document.getElementById("loading").style.display = "none";
 
-        data.forEach(item => {
-            if (item.type === "movie") {
-                window.flatList.push({
-                    title: item.title,
-                    poster: item.poster,
-                    embed: item.embed,
-                    genre: item.genre,
-                    year: item.year,
-                    type: "movie"
-                });
-            } else if (item.type === "series") {
-                item.episodes.forEach(ep => {
-                    window.flatList.push({
-                        title: `${item.title} - ${ep.ep}`,
-                        poster: item.poster,
-                        embed: ep.embed,
-                        genre: item.genre,
-                        year: item.year,
-                        type: "episode"
-                    });
-                });
-            }
-        });
+        showCategories(data);
+        showMovies(data);
 
-        generateCategories(window.flatList);
-        displayMovies(window.flatList);
+        setupSearch(data);
 
-    } catch (err) {
-        movieContainer.innerHTML = "<p style='color:white'>Gagal memuat data...</p>";
+    } catch (error) {
+        console.log(error);
+        document.getElementById("loading").innerHTML = "Gagal memuat data!";
     }
 }
 
-/* ============================
-   TAMPILKAN MOVIES DI BERANDA
-   ============================ */
-function displayMovies(list) {
+// ==========================================
+// CATEGORY AUTO
+// ==========================================
+
+function showCategories(data) {
+    const categories = [...new Set(data.map(m => m.genre))];
+
+    let html = "";
+    categories.forEach(c => {
+        html += `<button class="cat-btn" onclick="filterCategory('${c}')">${c}</button>`;
+    });
+
+    document.getElementById("categories").innerHTML = html;
+}
+
+// ==========================================
+// TAMPILKAN MOVIE / SERIES
+// ==========================================
+
+function showMovies(data) {
     let html = "";
 
-    list.forEach((m, index) => {
+    data.forEach(m => {
         html += `
-        <div class="movie-card" onclick="location.href='/player.html?id=${index}'">
+        <div class="card" onclick="openDetail('${encodeURIComponent(m.title)}')">
             <img src="${m.poster}" alt="${m.title}">
             <div class="title">${m.title}</div>
         </div>`;
     });
 
-    movieContainer.innerHTML = html;
+    document.getElementById("movies").innerHTML = html;
 }
 
-/* ============================
-   BUAT KATEGORI OTOMATIS
-   ============================ */
-function generateCategories(list) {
-    const genres = [...new Set(list.map(m => m.genre))];
+// ==========================================
+// FILTER KATEGORI
+// ==========================================
 
-    let html = `<button class="cat-btn" onclick="displayMovies(window.flatList)">All</button>`;
-
-    genres.forEach(g => {
-        html += `<button class="cat-btn" onclick="filterGenre('${g}')">${g}</button>`;
+function filterCategory(cat) {
+    fetch(url).then(res => res.json()).then(data => {
+        const filtered = data.filter(m => m.genre === cat);
+        showMovies(filtered);
     });
-
-    categoryContainer.innerHTML = html;
 }
 
-function filterGenre(g) {
-    const filtered = window.flatList.filter(m => m.genre === g);
-    displayMovies(filtered);
+// ==========================================
+// SEARCH
+// ==========================================
+
+function setupSearch(data) {
+    const input = document.getElementById("search");
+
+    input.addEventListener("input", () => {
+        const q = input.value.toLowerCase();
+
+        const filtered = data.filter(m =>
+            m.title.toLowerCase().includes(q)
+        );
+
+        showMovies(filtered);
+    });
 }
 
-/* ============================
-   FITUR PENCARIAN
-   ============================ */
-searchInput?.addEventListener("input", () => {
-    const key = searchInput.value.toLowerCase();
+// ==========================================
+// BUKA PLAYER
+// ==========================================
 
-    const filtered = window.flatList.filter(m =>
-        m.title.toLowerCase().includes(key)
-    );
+function openDetail(title) {
+    window.location.href = "/player.html?title=" + title;
+}
 
-    displayMovies(filtered);
-});
+// ==========================================
+// PLAYER PAGE
+// ==========================================
 
-/* ============================
-   RUN
-   ============================ */
+if (window.location.pathname.includes("player.html")) {
+    const params = new URLSearchParams(window.location.search);
+    const title = decodeURIComponent(params.get("title"));
+
+    fetch(url).then(res => res.json()).then(data => {
+        const movie = data.find(m => m.title === title);
+
+        document.getElementById("title").innerText = movie.title;
+        document.getElementById("videoFrame").src = movie.embed;
+    });
+}
+
+// ==========================================
+// START
+// ==========================================
+
 loadMovies();
