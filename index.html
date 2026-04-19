@@ -4,18 +4,17 @@
 <meta charset="UTF-8">
 <title>Nonton Gratis</title>
 
-<meta name="description"
-content="Nonton film & series gratis kualitas HD. Streaming cepat tanpa ribet, update setiap hari.">
+<meta name="description" content="Nonton film & series gratis kualitas HD. Streaming cepat tanpa ribet, update setiap hari.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- PWA -->
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="manifest.json">
 
 <!-- STYLE -->
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="assets/style.css">
 
 <!-- FAVICON OPTIONAL -->
-<link rel="icon" href="/assets/icon-192.png">
+<link rel="icon" href="assets/icon-192.png">
 
 </head>
 <body>
@@ -35,12 +34,12 @@ content="Nonton film & series gratis kualitas HD. Streaming cepat tanpa ribet, u
 <div id="loading">Memuat...</div>
 
 <!-- SCRIPT -->
-<script src="/assets/script.js" defer></script>
+<script src="assets/script.js" defer></script>
 
-<!-- REGISTER SERVICE WORKER -->
+<!-- SERVICE WORKER -->
 <script>
 if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/assets/sw.js").catch(()=>{});
+    navigator.serviceWorker.register("assets/sw.js").catch(()=>{});
 }
 </script>
 
