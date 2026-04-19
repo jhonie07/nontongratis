@@ -3,18 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Nonton Gratis</title>
-
-<meta name="description" content="Nonton film & series gratis kualitas HD. Streaming cepat tanpa ribet, update setiap hari.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Nonton film & series gratis berkualitas HD.">
 
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-
-<!-- STYLE -->
 <link rel="stylesheet" href="assets/style.css">
-
-<!-- FAVICON OPTIONAL -->
-<link rel="icon" href="assets/icon-192.png">
 
 </head>
 <body>
@@ -24,24 +16,13 @@
     <input type="text" id="search" placeholder="Cari film atau series...">
 </header>
 
-<!-- KATEGORI OTOMATIS -->
-<section id="categories"></section>
+<div id="categories"></div>
 
-<!-- GRID FILM SERI -->
-<section id="movies"></section>
+<div id="movies"></div>
 
-<!-- LOADING -->
-<div id="loading">Memuat...</div>
+<div id="loading">Loading...</div>
 
-<!-- SCRIPT -->
-<script src="assets/script.js" defer></script>
-
-<!-- SERVICE WORKER -->
-<script>
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("assets/sw.js").catch(()=>{});
-}
-</script>
+<script src="assets/script.js"></script>
 
 </body>
 </html>
