@@ -19,10 +19,10 @@ header {
     justify-content: space-between;
     padding: 15px 20px;
     background: linear-gradient(to bottom, #1a1a1a, #0a0a0a);
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #e50914;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
 }
 
 .logo {
@@ -30,6 +30,7 @@ header {
     font-weight: bold;
     color: #e50914;
     letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
 }
 
 #search {
@@ -49,70 +50,95 @@ header {
     background: #1a1a1a;
 }
 
-/* ============ HERO SECTION ============ */
+/* ============ HERO VIDEO SECTION ============ */
 #hero {
     width: 100%;
-    height: 300px;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 400px;
+    position: relative;
+    overflow: hidden;
     margin-bottom: 10px;
-    background-image: url('https://via.placeholder.com/1920x300/1a1a2e/e50914?text=NONTON+GRATIS');
-    background-size: cover;
-    background-position: center;
+    border-bottom: 2px solid #e50914;
+}
+
+.hero-video-wrapper {
+    width: 100%;
+    height: 100%;
     position: relative;
 }
 
-#hero::before {
-    content: '';
+.hero-video-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none; /* Supaya tidak bisa klik video */
+}
+
+.hero-overlay {
     position: absolute;
-    top: 0;
+    bottom: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.6);
-}
-
-.hero-content {
-    position: relative;
+    padding: 40px 30px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    color: white;
     z-index: 2;
-    text-align: center;
 }
 
-.hero-content h2 {
-    font-size: 2.5rem;
+.hero-overlay h2 {
+    font-size: 2rem;
     color: #e50914;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    margin-bottom: 10px;
 }
 
-.hero-content p {
-    font-size: 1.2rem;
+.hero-overlay p {
+    font-size: 1.1rem;
     color: #ddd;
-    margin-top: 10px;
+    margin-bottom: 15px;
 }
 
-/* ============ BANNER IKLAN ============ */
-#bannerTop, #bannerHome, #bannerBottom, #bannerPlayer {
-    margin: 15px auto;
-    text-align: center;
-    min-height: 90px;
-    background: #111;
+.hero-btn {
+    background: #e50914;
+    color: white;
+    border: none;
+    padding: 10px 25px;
     border-radius: 5px;
-    overflow: hidden;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid #ff4444;
 }
 
-#bannerHome {
+.hero-btn:hover {
+    background: #ff0a16;
+    transform: scale(1.05);
+}
+
+/* ============ AD CONTAINER ============ */
+.ad-container {
+    margin: 20px auto;
+    text-align: center;
     min-height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ad-slot {
+    width: 100%;
+    max-width: 336px;
+    margin: 0 auto;
 }
 
 /* ============ SECTION TITLE ============ */
 .section-title {
     padding: 15px 20px 5px;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     color: #e50914;
     border-left: 4px solid #e50914;
     margin-left: 15px;
+    margin-top: 20px;
 }
 
 /* ============ KATEGORI ============ */
@@ -124,7 +150,7 @@ header {
 }
 
 .category-btn {
-    background: #222;
+    background: #1a1a1a;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -139,44 +165,45 @@ header {
 .category-btn.active {
     background: #e50914;
     border-color: #e50914;
+    transform: translateY(-2px);
 }
 
-/* ============ GRID FILM (INI YANG BIKIN KESAMPING) ============ */
-#movies {
+/* ============ GRID FILM & SERIES ============ */
+#movies, #series {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     padding: 15px 20px;
 }
 
-/* Card Film */
-.movie-card {
+.movie-card, .series-card {
     background: #1a1a1a;
     border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.3s, box-shadow 0.3s;
     border: 1px solid #333;
+    position: relative;
 }
 
-.movie-card:hover {
+.movie-card:hover, .series-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(229, 9, 20, 0.2);
+    box-shadow: 0 10px 20px rgba(229, 9, 20, 0.3);
     border-color: #e50914;
 }
 
-.movie-card img {
+.movie-card img, .series-card img {
     width: 100%;
     height: 200px;
     object-fit: cover;
     background: #222;
 }
 
-.movie-card .movie-info {
+.movie-card .movie-info, .series-card .series-info {
     padding: 12px;
 }
 
-.movie-card h3 {
+.movie-card h3, .series-card h3 {
     font-size: 16px;
     margin-bottom: 5px;
     color: #fff;
@@ -185,13 +212,12 @@ header {
     text-overflow: ellipsis;
 }
 
-.movie-card p {
+.movie-card p, .series-card p {
     font-size: 13px;
     color: #aaa;
 }
 
-/* Rating badge */
-.movie-card .rating {
+.rating {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -201,6 +227,100 @@ header {
     border-radius: 4px;
     font-size: 12px;
     font-weight: bold;
+    z-index: 5;
+}
+
+/* ============ PLAYER PAGE ============ */
+.player-box {
+    width: 100%;
+    height: 60vh;
+    background: #000;
+    position: relative;
+}
+
+.player-box iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+#bannerPlayer {
+    margin: 15px auto;
+    text-align: center;
+    min-height: 250px;
+}
+
+#title {
+    padding: 15px 20px 5px;
+    margin: 0;
+    color: #fff;
+    font-size: 1.5rem;
+}
+
+#info {
+    padding: 0 20px 15px;
+    margin: 0;
+    color: #aaa;
+    font-size: 14px;
+}
+
+h3 {
+    padding: 0 20px;
+    margin: 20px 0 10px;
+    color: #fff;
+}
+
+#episodes, #recommend {
+    padding: 0 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.episode-btn {
+    background: #1a1a1a;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid #444;
+    transition: all 0.2s;
+}
+
+.episode-btn:hover,
+.episode-btn.active {
+    background: #e50914;
+    border-color: #e50914;
+}
+
+.rec-card {
+    background: #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    width: 140px;
+    text-align: center;
+    border: 1px solid #333;
+    transition: transform 0.2s;
+}
+
+.rec-card:hover {
+    transform: scale(1.05);
+    border-color: #e50914;
+}
+
+.rec-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.rec-card span {
+    display: block;
+    padding: 8px;
+    font-size: 13px;
+    color: #fff;
 }
 
 /* ============ MODAL ============ */
@@ -211,8 +331,8 @@ header {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 1000;
+    background: rgba(0,0,0,0.95);
+    z-index: 10000;
     overflow-y: auto;
 }
 
@@ -224,13 +344,14 @@ header {
     max-width: 600px;
     border-radius: 10px;
     color: white;
+    border: 1px solid #e50914;
 }
 
 /* ============ LOADING ============ */
 #loading {
     text-align: center;
     padding: 20px;
-    color: #aaa;
+    color: #e50914;
     display: none;
 }
 
@@ -246,21 +367,29 @@ header {
     }
     
     #hero {
-        height: 200px;
+        height: 250px;
     }
     
-    .hero-content h2 {
-        font-size: 1.8rem;
+    .hero-overlay h2 {
+        font-size: 1.5rem;
     }
     
-    #movies {
+    .hero-overlay p {
+        font-size: 0.9rem;
+    }
+    
+    #movies, #series {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
         padding: 12px;
     }
     
-    .movie-card img {
+    .movie-card img, .series-card img {
         height: 160px;
+    }
+    
+    .player-box {
+        height: 40vh;
     }
 }
 
@@ -270,27 +399,35 @@ header {
     }
     
     #hero {
-        height: 150px;
+        height: 180px;
     }
     
-    .hero-content h2 {
-        font-size: 1.5rem;
+    .hero-overlay {
+        padding: 20px 15px;
     }
     
-    .hero-content p {
-        font-size: 1rem;
+    .hero-overlay h2 {
+        font-size: 1.2rem;
+    }
+    
+    .hero-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
     }
     
     .section-title {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
     }
     
-    #categories {
-        padding: 10px 12px;
+    #movies, #series {
+        gap: 10px;
     }
     
-    .category-btn {
-        padding: 8px 16px;
-        font-size: 13px;
+    .rec-card {
+        width: 120px;
+    }
+    
+    .rec-card img {
+        height: 150px;
     }
 }
