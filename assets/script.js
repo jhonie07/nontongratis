@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    // ============ GLOBAL VARIABLES ============
     let allMovies = [];
+    let allSeries = [];
     let categories = [];
 
-    // ============ FETCH DATA DARI movies.json ============
+    // ============ FETCH DATA ============
     async function fetchMovies() {
         const loading = document.getElementById("loading");
         if (loading) loading.style.display = "block";
@@ -15,41 +15,28 @@ document.addEventListener("DOMContentLoaded", function () {
             
             const data = await response.json();
             
-            // Simpan ke global variable
-            allMovies = data; // Data sudah berupa array
+            // Pisahkan movie dan series
+            allMovies = data.filter(item => item.type === "movie");
+            allSeries = data.filter(item => item.type === "series");
             
-            // Ambil kategori unik dari data
+            // Ambil kategori unik
             const genreSet = new Set();
-            allMovies.forEach(movie => {
-                if (movie.genre) {
-                    movie.genre.split(",").forEach(g => genreSet.add(g.trim()));
+            data.forEach(item => {
+                if (item.genre) {
+                    item.genre.split(",").forEach(g => genreSet.add(g.trim()));
                 }
             });
             categories = Array.from(genreSet);
             
-            // Render semua
             renderCategories();
             renderMovies(allMovies);
+            renderSeries(allSeries);
             
         } catch (error) {
-            console.error("❌ Error fetch movies.json:", error);
-            useFallbackData();
+            console.error("❌ Error fetch:", error);
         } finally {
             if (loading) loading.style.display = "none";
         }
-    }
-
-    // ============ FALLBACK DATA ============
-    function useFallbackData() {
-        console.warn("⚠️ Menggunakan data fallback");
-        allMovies = [
-            { title: "Bodyguard 3", year: "2025", genre: "Action", poster: "https://raw.githubusercontent.com/jhonie07/nontongratis/main/bodyguard.jpg", embed: "https://www.dailymotion.com/embed/video/x9e11se" },
-            { title: "The Raid", year: "2011", genre: "Action Indo", poster: "https://www.dailymotion.com/thumbnail/video/x918nyu", embed: "https://www.dailymotion.com/embed/video/x918nyu" },
-            { title: "3 Iron", year: "2004", genre: "Action", poster: "https://www.dailymotion.com/thumbnail/video/x9p1fgw", embed: "https://www.dailymotion.com/embed/video/x9p1fgw" },
-        ];
-        categories = ["Action", "Action Indo", "Drama"];
-        renderCategories();
-        renderMovies(allMovies);
     }
 
     // ============ RENDER KATEGORI ============
@@ -64,6 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
         allBtn.textContent = "Semua";
         allBtn.onclick = () => {
             renderMovies(allMovies);
+            renderSeries(allSeries);
             setActiveCategory("Semua");
         };
         catContainer.appendChild(allBtn);
@@ -73,86 +61,100 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.className = "category-btn";
             btn.textContent = cat;
             btn.onclick = () => {
-                filterByCategory(cat);
+                const filteredMovies = allMovies.filter(m => m.genre && m.genre.includes(cat));
+                const filteredSeries = allSeries.filter(s => s.genre && s.genre.includes(cat));
+                renderMovies(filteredMovies);
+                renderSeries(filteredSeries);
                 setActiveCategory(cat);
             };
             catContainer.appendChild(btn);
         });
     }
 
-    function setActiveCategory(categoryName) {
+    function setActiveCategory(catName) {
         document.querySelectorAll(".category-btn").forEach(btn => {
             btn.classList.remove("active");
-            if (btn.textContent === categoryName) btn.classList.add("active");
+            if (btn.textContent === catName) btn.classList.add("active");
         });
     }
 
-    function filterByCategory(category) {
-        const filtered = allMovies.filter(movie => {
-            const movieGenres = movie.genre ? movie.genre.split(",").map(g => g.trim()) : [];
-            return movieGenres.includes(category);
-        });
-        renderMovies(filtered);
-    }
-
-    // ============ RENDER FILM (GRID) ============
-    const moviesContainer = document.getElementById("movies");
-    
+    // ============ RENDER MOVIES ============
     function renderMovies(movieList) {
-        if (!moviesContainer) return;
-        moviesContainer.innerHTML = "";
+        const container = document.getElementById("movies");
+        if (!container) return;
+        container.innerHTML = "";
         
         if (movieList.length === 0) {
-            moviesContainer.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#aaa;'>😕 Film tidak ditemukan</p>";
+            container.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#aaa;'>😕 Tidak ada film</p>";
             return;
         }
         
-        movieList.forEach(movie => {
-            const card = document.createElement("div");
-            card.className = "movie-card";
-            card.onclick = () => openPlayer(movie);
-            
-            const imgSrc = movie.poster || movie.img || `https://via.placeholder.com/300x200/333/e50914?text=${encodeURIComponent(movie.title || 'Film')}`;
-            const rating = movie.rating || "?";
-            const year = movie.year || "2024";
-            const genreDisplay = movie.genre || "Unknown";
-            
-            card.innerHTML = `
-                <div style="position: relative;">
-                    <img src="${imgSrc}" alt="${movie.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200/333/e50914?text=No+Image'">
-                    ${rating !== "?" ? `<span class="rating">⭐ ${rating}</span>` : ''}
-                </div>
-                <div class="movie-info">
-                    <h3>${movie.title || "Untitled"}</h3>
-                    <p>${year} • ${genreDisplay}</p>
-                </div>
-            `;
-            
-            moviesContainer.appendChild(card);
+        movieList.slice(0, 6).forEach(movie => {
+            const card = createCard(movie);
+            container.appendChild(card);
         });
     }
 
-    // ============ OPEN PLAYER ============
-    function openPlayer(movie) {
-        localStorage.setItem("currentMovie", JSON.stringify(movie));
-        window.location.href = "player.html";
+    // ============ RENDER SERIES ============
+    function renderSeries(seriesList) {
+        const container = document.getElementById("series");
+        if (!container) return;
+        container.innerHTML = "";
+        
+        if (seriesList.length === 0) {
+            container.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#aaa;'>😕 Tidak ada series</p>";
+            return;
+        }
+        
+        seriesList.slice(0, 6).forEach(series => {
+            const card = createCard(series);
+            container.appendChild(card);
+        });
     }
 
-    // ============ SEARCH FUNCTION ============
+    // ============ CREATE CARD ============
+    function createCard(item) {
+        const card = document.createElement("div");
+        card.className = item.type === "movie" ? "movie-card" : "series-card";
+        card.onclick = () => openPlayer(item);
+        
+        const imgSrc = item.poster || `https://via.placeholder.com/300x200/333/e50914?text=${encodeURIComponent(item.title)}`;
+        const year = item.year || "2024";
+        const genre = item.genre || "Unknown";
+        
+        card.innerHTML = `
+            <div style="position: relative;">
+                <img src="${imgSrc}" alt="${item.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200/333/e50914?text=No+Image'">
+                <span class="rating">${item.type === "series" ? "📺" : "🎬"}</span>
+            </div>
+            <div class="${item.type === "movie" ? "movie-info" : "series-info"}">
+                <h3>${item.title}</h3>
+                <p>${year} • ${genre}</p>
+            </div>
+        `;
+        
+        return card;
+    }
+
+    // ============ SEARCH ============
     const searchInput = document.getElementById("search");
     if (searchInput) {
         searchInput.addEventListener("input", (e) => {
             const term = e.target.value.toLowerCase();
-            const filtered = allMovies.filter(m => 
-                (m.title && m.title.toLowerCase().includes(term)) || 
-                (m.genre && m.genre.toLowerCase().includes(term))
-            );
-            renderMovies(filtered);
-            setActiveCategory("Semua");
+            const filteredMovies = allMovies.filter(m => m.title.toLowerCase().includes(term));
+            const filteredSeries = allSeries.filter(s => s.title.toLowerCase().includes(term));
+            renderMovies(filteredMovies);
+            renderSeries(filteredSeries);
         });
     }
 
-    // ============ PLAYER PAGE LOGIC ============
+    // ============ OPEN PLAYER ============
+    function openPlayer(item) {
+        localStorage.setItem("currentMovie", JSON.stringify(item));
+        window.location.href = "player.html";
+    }
+
+    // ============ PLAYER PAGE ============
     const videoFrame = document.getElementById("videoFrame");
     const titleEl = document.getElementById("title");
     const infoEl = document.getElementById("info");
@@ -160,54 +162,40 @@ document.addEventListener("DOMContentLoaded", function () {
     const recommendContainer = document.getElementById("recommend");
     
     if (videoFrame && titleEl && infoEl) {
-        const movieData = JSON.parse(localStorage.getItem("currentMovie") || "{}");
+        const item = JSON.parse(localStorage.getItem("currentMovie") || "{}");
         
-        titleEl.textContent = movieData.title || "Judul Film";
-        const year = movieData.year || "2024";
-        const genre = movieData.genre || "Unknown";
-        infoEl.textContent = `${year} • ${genre}`;
+        titleEl.textContent = item.title || "Judul";
+        infoEl.textContent = `${item.year || "2024"} • ${item.genre || "Unknown"}`;
         
-        // ============ SET VIDEO DAILYMOTION ============
-        if (movieData.embed) {
-            // Pastikan URL Dailymotion dalam format embed
-            let embedUrl = movieData.embed;
-            
-            // Jika URL bukan format embed, konversi
+        // Set video
+        if (item.type === "movie" && item.embed) {
+            let embedUrl = item.embed;
             if (embedUrl.includes("dailymotion.com/video/")) {
                 const videoId = embedUrl.split("/video/")[1].split("?")[0];
                 embedUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
             }
-            
             videoFrame.src = embedUrl + "?autoplay=1";
-            console.log("🎬 Playing:", embedUrl);
-        } else {
-            // Fallback ke halaman kosong (BUKAN YouTube)
-            videoFrame.src = "about:blank";
-            console.warn("⚠️ Tidak ada URL embed untuk film ini");
         }
         
-        // ============ RENDER EPISODES (UNTUK SERIES) ============
+        // Render episodes untuk series
         if (episodesContainer) {
             episodesContainer.innerHTML = "";
+            const episodeTitle = document.getElementById("Episode");
             
-            if (movieData.type === "series" && movieData.episodes && movieData.episodes.length > 0) {
-                // Tampilkan judul episode
-                const episodeTitle = document.getElementById("Episode");
+            if (item.type === "series" && item.episodes) {
                 if (episodeTitle) episodeTitle.style.display = "block";
                 
-                movieData.episodes.forEach((ep, index) => {
+                item.episodes.forEach((ep, i) => {
                     const btn = document.createElement("button");
                     btn.className = "episode-btn";
-                    btn.textContent = ep.ep || `Episode ${index + 1}`;
+                    btn.textContent = ep.ep || `Episode ${i+1}`;
                     btn.onclick = () => {
-                        if (ep.embed) {
-                            let embedUrl = ep.embed;
-                            if (embedUrl.includes("dailymotion.com/video/")) {
-                                const videoId = embedUrl.split("/video/")[1];
-                                embedUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
-                            }
-                            videoFrame.src = embedUrl + "?autoplay=1";
+                        let embedUrl = ep.embed;
+                        if (embedUrl.includes("dailymotion.com/video/")) {
+                            const videoId = embedUrl.split("/video/")[1];
+                            embedUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
                         }
+                        videoFrame.src = embedUrl + "?autoplay=1";
                         
                         document.querySelectorAll(".episode-btn").forEach(b => b.classList.remove("active"));
                         btn.classList.add("active");
@@ -215,55 +203,44 @@ document.addEventListener("DOMContentLoaded", function () {
                     episodesContainer.appendChild(btn);
                 });
                 
-                // Aktifkan episode pertama
-                if (movieData.episodes[0] && movieData.episodes[0].embed) {
-                    let firstEmbed = movieData.episodes[0].embed;
-                    if (firstEmbed.includes("dailymotion.com/video/")) {
-                        const videoId = firstEmbed.split("/video/")[1];
-                        firstEmbed = `https://www.dailymotion.com/embed/video/${videoId}`;
+                // Play episode 1
+                if (item.episodes[0]) {
+                    let embedUrl = item.episodes[0].embed;
+                    if (embedUrl.includes("dailymotion.com/video/")) {
+                        const videoId = embedUrl.split("/video/")[1];
+                        embedUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
                     }
-                    videoFrame.src = firstEmbed + "?autoplay=1";
+                    videoFrame.src = embedUrl + "?autoplay=1";
                 }
             } else {
-                // Sembunyikan judul episode untuk movie
-                const episodeTitle = document.getElementById("Episode");
                 if (episodeTitle) episodeTitle.style.display = "none";
             }
         }
         
-        // ============ RENDER REKOMENDASI ============
+        // Rekomendasi
         if (recommendContainer) {
             recommendContainer.innerHTML = "";
+            const all = [...allMovies, ...allSeries].filter(i => i.title !== item.title);
+            const random = all.sort(() => 0.5 - Math.random()).slice(0, 4);
             
-            const moviesData = allMovies.length > 0 ? allMovies : [];
-            if (moviesData.length === 0) return;
-            
-            const filtered = moviesData.filter(m => m.title !== movieData.title);
-            const shuffled = [...filtered].sort(() => 0.5 - Math.random());
-            const selected = shuffled.slice(0, 4);
-            
-            selected.forEach(movie => {
+            random.forEach(rec => {
                 const card = document.createElement("div");
                 card.className = "rec-card";
                 card.onclick = () => {
-                    localStorage.setItem("currentMovie", JSON.stringify(movie));
+                    localStorage.setItem("currentMovie", JSON.stringify(rec));
                     window.location.reload();
                 };
                 
-                const imgSrc = movie.poster || movie.img || `https://via.placeholder.com/120x160/333/e50914?text=${encodeURIComponent(movie.title || 'Film')}`;
-                
                 card.innerHTML = `
-                    <img src="${imgSrc}" alt="${movie.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/120x160/333/e50914?text=No+Image'">
-                    <span>${movie.title || "Untitled"}</span>
+                    <img src="${rec.poster || 'https://via.placeholder.com/120x160/333/e50914?text=No+Image'}" alt="${rec.title}">
+                    <span>${rec.title}</span>
                 `;
                 recommendContainer.appendChild(card);
             });
         }
     }
 
-    // ============ INIT ============
+    // Init
     fetchMovies();
-    window.allMovies = allMovies;
-
-    console.log("✅ Script loaded - Dailymotion ready");
+    console.log("✅ Script loaded - Dailymotion + Series support");
 });
