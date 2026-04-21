@@ -1,322 +1,721 @@
-document.addEventListener("DOMContentLoaded", function () {
+/**
+ * NONTON GRATIS - Main Script v2.0
+ * Full Featured Streaming Website
+ */
 
+(function() {
+    'use strict';
+
+    // ============ GLOBAL VARIABLES ============
     let allMovies = [];
     let allSeries = [];
+    let allData = [];
     let categories = [];
-    let trendingItem = null;
+    let currentFilter = 'all';
+    let deferredPrompt = null;
+
+    // DOM Elements
+    const DOM = {
+        // Containers
+        moviesContainer: document.getElementById('movies'),
+        seriesContainer: document.getElementById('series'),
+        categoriesContainer: document.getElementById('categories'),
+        continueWatchingContainer: document.getElementById('continueWatching'),
+        continueWatchingSection: document.getElementById('continueWatchingSection'),
+        
+        // Hero
+        heroVideo: document.getElementById('heroVideo'),
+        heroTitle: document.getElementById('heroTitle'),
+        heroInfo: document.getElementById('heroInfo'),
+        heroWatchBtn: document.getElementById('heroWatchBtn'),
+        heroTrailerBtn: document.getElementById('heroTrailerBtn'),
+        heroBookmarkBtn: document.getElementById('heroBookmarkBtn'),
+        
+        // Search
+        searchInput: document.getElementById('search'),
+        searchBtn: document.getElementById('searchBtn'),
+        
+        // UI Controls
+        darkModeToggle: document.getElementById('darkModeToggle'),
+        menuToggle: document.getElementById('menuToggle'),
+        sidebar: document.getElementById('sidebar'),
+        sidebarOverlay: document.getElementById('sidebarOverlay'),
+        closeSidebar: document.getElementById('closeSidebar'),
+        clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+        
+        // Loading
+        loading: document.getElementById('loading'),
+        
+        // Modals
+        trailerModal: document.getElementById('trailerModal'),
+        trailerFrame: document.getElementById('trailerFrame'),
+        
+        // Install PWA
+        installPrompt: document.getElementById('installPrompt'),
+        installBtn: document.getElementById('installBtn'),
+        dismissInstall: document.getElementById('dismissInstall')
+    };
+
+    // ============ INITIALIZATION ============
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 Nonton Gratis v2.0 Initializing...');
+        
+        initApp();
+        fetchData();
+        setupEventListeners();
+        checkInstallPrompt();
+        loadUserPreferences();
+        renderContinueWatching();
+    });
+
+    // ============ INIT APP ============
+    function initApp() {
+        // Check if we're on homepage
+        const isHomePage = DOM.moviesContainer || DOM.seriesContainer;
+        const isPlayerPage = document.getElementById('videoFrame');
+        const isBookmarksPage = window.location.pathname.includes('bookmarks');
+        
+        console.log(`📍 Page: ${isHomePage ? 'Home' : isPlayerPage ? 'Player' : isBookmarksPage ? 'Bookmarks' : 'Other'}`);
+    }
 
     // ============ FETCH DATA ============
-    async function fetchMovies() {
-        const loading = document.getElementById("loading");
-        if (loading) loading.style.display = "block";
-
+    async function fetchData() {
+        // Only fetch if on homepage
+        if (!DOM.moviesContainer && !DOM.seriesContainer) return;
+        
+        showLoading(true);
+        
         try {
-            const response = await fetch("./movies.json");
-            if (!response.ok) throw new Error("Gagal load movies.json");
+            // Try to fetch from movies.json
+            const response = await fetch('./movies.json');
+            if (!response.ok) throw new Error('Failed to fetch movies.json');
             
             const data = await response.json();
+            allData = data;
             
-            // Pisahkan movie dan series
-            allMovies = data.filter(item => item.type === "movie");
-            allSeries = data.filter(item => item.type === "series");
+            // Separate movies and series
+            allMovies = data.filter(item => item.type === 'movie');
+            allSeries = data.filter(item => item.type === 'series');
             
-            // Tentukan TRENDING (item pertama atau terbaru berdasarkan tahun)
-            const allItems = [...allMovies, ...allSeries];
-            // Sort by year (terbaru dulu)
-            allItems.sort((a, b) => (b.year || 0) - (a.year || 0));
-            trendingItem = allItems[0] || null;
+            // Extract categories
+            extractCategories();
             
-            // Setup Hero dengan trending item
-            setupHero(trendingItem);
+            // Setup hero with trending item
+            setupHero();
             
-            // Ambil kategori unik
-            const genreSet = new Set();
-            data.forEach(item => {
-                if (item.genre) {
-                    item.genre.split(",").forEach(g => genreSet.add(g.trim()));
-                }
-            });
-            categories = Array.from(genreSet);
-            
+            // Render content
             renderCategories();
-            renderMovies(allMovies);
-            renderSeries(allSeries);
+            renderMovies(allMovies.slice(0, 6));
+            renderSeries(allSeries.slice(0, 6));
+            
+            console.log(`✅ Loaded ${allMovies.length} movies and ${allSeries.length} series`);
             
         } catch (error) {
-            console.error("❌ Error fetch:", error);
+            console.error('❌ Error fetching data:', error);
             useFallbackData();
         } finally {
-            if (loading) loading.style.display = "none";
+            showLoading(false);
         }
     }
 
-    // ============ FALLBACK DATA ============
-    function useFallbackData() {
-        console.warn("⚠️ Menggunakan data fallback");
-        allMovies = [
-            { type: "movie", title: "Bodyguard 3", year: "2025", genre: "Action", poster: "https://raw.githubusercontent.com/jhonie07/nontongratis/main/bodyguard.jpg", embed: "https://www.dailymotion.com/embed/video/x9e11se" }
-        ];
-        allSeries = [];
-        trendingItem = allMovies[0];
-        setupHero(trendingItem);
-        categories = ["Action"];
-        renderCategories();
-        renderMovies(allMovies);
-        renderSeries(allSeries);
+    // ============ EXTRACT CATEGORIES ============
+    function extractCategories() {
+        const genreSet = new Set();
+        allData.forEach(item => {
+            if (item.genre) {
+                item.genre.split(',').forEach(g => genreSet.add(g.trim()));
+            }
+        });
+        categories = ['Semua', ...Array.from(genreSet).sort()];
     }
 
-    // ============ SETUP HERO DINAMIS ============
-    function setupHero(item) {
-        if (!item) return;
+    // ============ SETUP HERO ============
+    function setupHero() {
+        if (!DOM.heroVideo) return;
         
-        const heroVideo = document.getElementById("heroVideo");
-        const heroTitle = document.getElementById("heroTitle");
-        const heroInfo = document.getElementById("heroInfo");
-        const heroBtn = document.getElementById("heroWatchBtn");
+        // Get trending item (first item or most viewed)
+        const allItems = [...allMovies, ...allSeries];
+        const sortedByViews = allItems.sort((a, b) => (b.views || 0) - (a.views || 0));
+        const trendingItem = sortedByViews[0] || allItems[0];
         
-        if (!heroVideo || !heroTitle || !heroInfo || !heroBtn) return;
+        if (!trendingItem) return;
         
-        // Set judul dan info
-        heroTitle.textContent = `🔥 ${item.title}`;
-        heroInfo.textContent = `${item.year || "2024"} • ${item.genre || "Action"} • ${item.type === "series" ? "Series" : "Movie"}`;
+        // Store for later use
+        window.trendingItem = trendingItem;
         
-        // Set video source (Dailymotion embed)
-        let videoUrl = "";
+        // Update hero content
+        DOM.heroTitle.textContent = `🔥 ${trendingItem.title}`;
+        DOM.heroInfo.textContent = `${trendingItem.year || ''} • ${trendingItem.genre || ''} • ${trendingItem.type === 'series' ? 'Series' : 'Movie'}`;
         
-        if (item.type === "series" && item.episodes && item.episodes.length > 0) {
-            // Untuk series, ambil episode pertama
-            videoUrl = item.episodes[0].embed;
-        } else if (item.embed) {
-            videoUrl = item.embed;
-        }
-        
-        // Konversi ke format embed Dailymotion jika perlu
-        if (videoUrl && videoUrl.includes("dailymotion.com/video/")) {
-            const videoId = videoUrl.split("/video/")[1].split("?")[0];
-            videoUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
-        }
-        
-        // Set iframe src dengan parameter autoplay & mute
-        if (videoUrl) {
-            heroVideo.src = `${videoUrl}?autoplay=1&mute=1&controls=0&loop=0`;
+        // Set video
+        let videoUrl = '';
+        if (trendingItem.type === 'series' && trendingItem.episodes) {
+            videoUrl = trendingItem.episodes[0]?.embed || '';
         } else {
-            // Fallback ke trailer default
-            heroVideo.src = "https://www.dailymotion.com/embed/video/x9e11se?autoplay=1&mute=1&controls=0";
+            videoUrl = trendingItem.embed || '';
         }
         
-        // Set tombol action
-        heroBtn.onclick = () => {
-            // Simpan trending item ke localStorage dan buka player
-            localStorage.setItem("currentMovie", JSON.stringify(item));
-            window.location.href = "player.html";
-        };
+        if (videoUrl) {
+            if (videoUrl.includes('dailymotion.com/video/')) {
+                const videoId = videoUrl.split('/video/')[1].split('?')[0];
+                videoUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
+            }
+            DOM.heroVideo.src = `${videoUrl}?autoplay=1&mute=1&controls=0&loop=0`;
+        }
         
-        console.log("✅ Hero setup dengan:", item.title);
+        // Setup hero buttons
+        DOM.heroWatchBtn.onclick = () => openPlayer(trendingItem);
+        DOM.heroTrailerBtn.onclick = () => showTrailer(trendingItem);
+        DOM.heroBookmarkBtn.onclick = () => toggleBookmark(trendingItem, DOM.heroBookmarkBtn);
+        
+        // Check bookmark status
+        updateBookmarkButton(trendingItem, DOM.heroBookmarkBtn);
     }
 
-    // ============ RENDER KATEGORI ============
+    // ============ RENDER CATEGORIES ============
     function renderCategories() {
-        const catContainer = document.getElementById("categories");
-        if (!catContainer) return;
+        if (!DOM.categoriesContainer) return;
         
-        catContainer.innerHTML = "";
+        DOM.categoriesContainer.innerHTML = '';
         
-        const allBtn = document.createElement("button");
-        allBtn.className = "category-btn active";
-        allBtn.textContent = "Semua";
-        allBtn.onclick = () => {
-            renderMovies(allMovies);
-            renderSeries(allSeries);
-            setActiveCategory("Semua");
-        };
-        catContainer.appendChild(allBtn);
-        
-        categories.sort().forEach(cat => {
-            const btn = document.createElement("button");
-            btn.className = "category-btn";
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn' + (cat === 'Semua' ? ' active' : '');
             btn.textContent = cat;
-            btn.onclick = () => {
-                const filteredMovies = allMovies.filter(m => m.genre && m.genre.includes(cat));
-                const filteredSeries = allSeries.filter(s => s.genre && s.genre.includes(cat));
-                renderMovies(filteredMovies);
-                renderSeries(filteredSeries);
-                setActiveCategory(cat);
-            };
-            catContainer.appendChild(btn);
+            btn.dataset.category = cat;
+            btn.onclick = () => filterByCategory(cat);
+            DOM.categoriesContainer.appendChild(btn);
         });
     }
 
-    function setActiveCategory(catName) {
-        document.querySelectorAll(".category-btn").forEach(btn => {
-            btn.classList.remove("active");
-            if (btn.textContent === catName) btn.classList.add("active");
+    // ============ FILTER BY CATEGORY ============
+    function filterByCategory(category) {
+        currentFilter = category;
+        
+        // Update active button
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.category === category);
         });
+        
+        let filteredMovies = allMovies;
+        let filteredSeries = allSeries;
+        
+        if (category !== 'Semua') {
+            filteredMovies = allMovies.filter(m => m.genre && m.genre.includes(category));
+            filteredSeries = allSeries.filter(s => s.genre && s.genre.includes(category));
+        }
+        
+        renderMovies(filteredMovies.slice(0, 6));
+        renderSeries(filteredSeries.slice(0, 6));
     }
 
     // ============ RENDER MOVIES ============
-    function renderMovies(movieList) {
-        const container = document.getElementById("movies");
-        if (!container) return;
-        container.innerHTML = "";
+    function renderMovies(movies) {
+        if (!DOM.moviesContainer) return;
         
-        if (movieList.length === 0) {
-            container.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#aaa;'>😕 Tidak ada film</p>";
+        DOM.moviesContainer.innerHTML = '';
+        
+        if (movies.length === 0) {
+            DOM.moviesContainer.innerHTML = '<p class="empty-message">😕 Tidak ada film</p>';
             return;
         }
         
-        movieList.slice(0, 6).forEach(movie => {
-            const card = createCard(movie);
-            container.appendChild(card);
+        movies.forEach(movie => {
+            const card = createMovieCard(movie);
+            DOM.moviesContainer.appendChild(card);
         });
     }
 
     // ============ RENDER SERIES ============
-    function renderSeries(seriesList) {
-        const container = document.getElementById("series");
-        if (!container) return;
-        container.innerHTML = "";
+    function renderSeries(series) {
+        if (!DOM.seriesContainer) return;
         
-        if (seriesList.length === 0) {
-            container.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#aaa;'>😕 Tidak ada series</p>";
+        DOM.seriesContainer.innerHTML = '';
+        
+        if (series.length === 0) {
+            DOM.seriesContainer.innerHTML = '<p class="empty-message">😕 Tidak ada series</p>';
             return;
         }
         
-        seriesList.slice(0, 6).forEach(series => {
-            const card = createCard(series);
-            container.appendChild(card);
+        series.forEach(item => {
+            const card = createMovieCard(item);
+            DOM.seriesContainer.appendChild(card);
         });
     }
 
-    // ============ CREATE CARD ============
-    function createCard(item) {
-        const card = document.createElement("div");
-        card.className = item.type === "movie" ? "movie-card" : "series-card";
-        card.onclick = () => openPlayer(item);
+    // ============ CREATE MOVIE CARD ============
+    function createMovieCard(item) {
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+        card.dataset.id = item.id || item.title;
         
-        const imgSrc = item.poster || `https://via.placeholder.com/300x200/333/e50914?text=${encodeURIComponent(item.title)}`;
-        const year = item.year || "2024";
-        const genre = item.genre || "Unknown";
+        const imgSrc = item.poster || 'https://via.placeholder.com/300x200/333/e50914?text=No+Image';
+        const year = item.year || 'N/A';
+        const genre = item.genre || 'Unknown';
+        const typeIcon = item.type === 'series' ? '📺' : '🎬';
         
         card.innerHTML = `
-            <div style="position: relative;">
-                <img src="${imgSrc}" alt="${item.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200/333/e50914?text=No+Image'">
-                <span class="rating">${item.type === "series" ? "📺" : "🎬"}</span>
+            <div class="card-image-wrapper">
+                <img src="${imgSrc}" alt="${item.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200/333/e50914?text=Error'">
+                <span class="rating-badge">${typeIcon}</span>
+                <div class="movie-actions">
+                    <button class="bookmark-btn" title="Bookmark">🔖</button>
+                    <button class="trailer-btn" title="Trailer">▶</button>
+                </div>
             </div>
-            <div class="${item.type === "movie" ? "movie-info" : "series-info"}">
+            <div class="movie-info">
                 <h3>${item.title}</h3>
                 <p>${year} • ${genre}</p>
             </div>
         `;
         
-        return card;
-    }
-
-    // ============ SEARCH ============
-    const searchInput = document.getElementById("search");
-    if (searchInput) {
-        searchInput.addEventListener("input", (e) => {
-            const term = e.target.value.toLowerCase();
-            const filteredMovies = allMovies.filter(m => m.title.toLowerCase().includes(term));
-            const filteredSeries = allSeries.filter(s => s.title.toLowerCase().includes(term));
-            renderMovies(filteredMovies);
-            renderSeries(filteredSeries);
+        // Event listeners
+        card.addEventListener('click', (e) => {
+            // Don't trigger if clicking on action buttons
+            if (e.target.closest('.movie-actions')) return;
+            openPlayer(item);
         });
+        
+        const bookmarkBtn = card.querySelector('.bookmark-btn');
+        bookmarkBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleBookmark(item, bookmarkBtn);
+        });
+        
+        const trailerBtn = card.querySelector('.trailer-btn');
+        trailerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showTrailer(item);
+        });
+        
+        // Update bookmark button
+        updateBookmarkButton(item, bookmarkBtn);
+        
+        return card;
     }
 
     // ============ OPEN PLAYER ============
     function openPlayer(item) {
-        localStorage.setItem("currentMovie", JSON.stringify(item));
-        window.location.href = "player.html";
+        // Add to continue watching
+        addToContinueWatching(item);
+        
+        // Save to localStorage
+        localStorage.setItem('currentMovie', JSON.stringify(item));
+        
+        // Navigate to player
+        window.location.href = 'player.html';
     }
 
-    // ============ PLAYER PAGE LOGIC ============
-    const videoFrame = document.getElementById("videoFrame");
-    const titleEl = document.getElementById("title");
-    const infoEl = document.getElementById("info");
-    const episodesContainer = document.getElementById("episodes");
-    const recommendContainer = document.getElementById("recommend");
-    
-    if (videoFrame && titleEl && infoEl) {
-        const item = JSON.parse(localStorage.getItem("currentMovie") || "{}");
+    // ============ SHOW TRAILER ============
+    function showTrailer(item) {
+        if (!DOM.trailerModal || !DOM.trailerFrame) return;
         
-        titleEl.textContent = item.title || "Judul";
-        infoEl.textContent = `${item.year || "2024"} • ${item.genre || "Unknown"}`;
+        let trailerUrl = '';
         
-        // Set video
-        if (item.type === "movie" && item.embed) {
-            let embedUrl = item.embed;
-            if (embedUrl.includes("dailymotion.com/video/")) {
-                const videoId = embedUrl.split("/video/")[1].split("?")[0];
-                embedUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
-            }
-            videoFrame.src = embedUrl + "?autoplay=1";
+        if (item.type === 'series' && item.episodes) {
+            trailerUrl = item.episodes[0]?.embed || '';
+        } else {
+            trailerUrl = item.embed || '';
         }
         
-        // Render episodes
-        if (episodesContainer) {
-            episodesContainer.innerHTML = "";
-            const episodeTitle = document.getElementById("Episode");
+        if (trailerUrl) {
+            if (trailerUrl.includes('dailymotion.com/video/')) {
+                const videoId = trailerUrl.split('/video/')[1].split('?')[0];
+                trailerUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
+            }
+            DOM.trailerFrame.src = trailerUrl + '?autoplay=1';
+        }
+        
+        DOM.trailerModal.classList.add('active');
+    }
+
+    // ============ CLOSE TRAILER MODAL ============
+    window.closeTrailerModal = function() {
+        if (DOM.trailerModal) {
+            DOM.trailerModal.classList.remove('active');
+            if (DOM.trailerFrame) {
+                DOM.trailerFrame.src = '';
+            }
+        }
+    };
+
+    // ============ TOGGLE BOOKMARK ============
+    function toggleBookmark(item, button) {
+        const bookmarks = JSON.parse(localStorage.getItem('nontongratis_bookmarks') || '[]');
+        const index = bookmarks.findIndex(b => b.id === item.id || b.title === item.title);
+        
+        if (index >= 0) {
+            bookmarks.splice(index, 1);
+            showToast('Dihapus dari bookmark');
+        } else {
+            bookmarks.push({
+                id: item.id || item.title,
+                type: item.type,
+                title: item.title,
+                poster: item.poster,
+                genre: item.genre,
+                year: item.year,
+                embed: item.embed,
+                episodes: item.episodes
+            });
+            showToast('Ditambahkan ke bookmark');
+        }
+        
+        localStorage.setItem('nontongratis_bookmarks', JSON.stringify(bookmarks));
+        updateBookmarkButton(item, button);
+    }
+
+    // ============ UPDATE BOOKMARK BUTTON ============
+    function updateBookmarkButton(item, button) {
+        if (!button) return;
+        
+        const bookmarks = JSON.parse(localStorage.getItem('nontongratis_bookmarks') || '[]');
+        const isBookmarked = bookmarks.some(b => b.id === item.id || b.title === item.title);
+        
+        button.textContent = isBookmarked ? '🔖' : '🔖';
+        button.style.color = isBookmarked ? '#e50914' : '';
+    }
+
+    // ============ ADD TO CONTINUE WATCHING ============
+    function addToContinueWatching(item) {
+        const history = JSON.parse(localStorage.getItem('watch_history') || '[]');
+        const existing = history.findIndex(h => h.id === (item.id || item.title));
+        
+        const entry = {
+            id: item.id || item.title,
+            title: item.title,
+            poster: item.poster,
+            type: item.type,
+            progress: 0,
+            timestamp: Date.now()
+        };
+        
+        if (existing >= 0) {
+            history[existing] = entry;
+        } else {
+            history.push(entry);
+        }
+        
+        // Keep last 20 items
+        const trimmed = history.slice(-20);
+        localStorage.setItem('watch_history', JSON.stringify(trimmed));
+    }
+
+    // ============ RENDER CONTINUE WATCHING ============
+    function renderContinueWatching() {
+        if (!DOM.continueWatchingContainer || !DOM.continueWatchingSection) return;
+        
+        const history = JSON.parse(localStorage.getItem('watch_history') || '[]');
+        
+        if (history.length === 0) {
+            DOM.continueWatchingSection.style.display = 'none';
+            return;
+        }
+        
+        DOM.continueWatchingSection.style.display = 'block';
+        DOM.continueWatchingContainer.innerHTML = '';
+        
+        // Show last 4 items
+        history.slice(-4).reverse().forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'movie-card';
             
-            if (item.type === "series" && item.episodes) {
-                if (episodeTitle) episodeTitle.style.display = "block";
-                
-                item.episodes.forEach((ep, i) => {
-                    const btn = document.createElement("button");
-                    btn.className = "episode-btn";
-                    btn.textContent = ep.ep || `Episode ${i+1}`;
-                    if (i === 0) btn.classList.add("active");
-                    btn.onclick = () => {
-                        let embedUrl = ep.embed;
-                        if (embedUrl.includes("dailymotion.com/video/")) {
-                            const videoId = embedUrl.split("/video/")[1];
-                            embedUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
-                        }
-                        videoFrame.src = embedUrl + "?autoplay=1";
-                        
-                        document.querySelectorAll(".episode-btn").forEach(b => b.classList.remove("active"));
-                        btn.classList.add("active");
-                    };
-                    episodesContainer.appendChild(btn);
-                });
-                
-                // Play episode 1
-                if (item.episodes[0]) {
-                    let embedUrl = item.episodes[0].embed;
-                    if (embedUrl.includes("dailymotion.com/video/")) {
-                        const videoId = embedUrl.split("/video/")[1];
-                        embedUrl = `https://www.dailymotion.com/embed/video/${videoId}`;
-                    }
-                    videoFrame.src = embedUrl + "?autoplay=1";
+            card.innerHTML = `
+                <div class="card-image-wrapper">
+                    <img src="${item.poster || 'https://via.placeholder.com/300x200/333/e50914?text=No+Image'}" alt="${item.title}" loading="lazy">
+                    <div class="progress-bar" style="width: ${item.progress || 0}%"></div>
+                </div>
+                <div class="movie-info">
+                    <h3>${item.title}</h3>
+                    <p>${item.type === 'series' ? '📺 Series' : '🎬 Movie'}</p>
+                </div>
+            `;
+            
+            card.addEventListener('click', () => {
+                // Find full item data
+                const fullItem = allData.find(d => d.title === item.title) || item;
+                openPlayer(fullItem);
+            });
+            
+            DOM.continueWatchingContainer.appendChild(card);
+        });
+    }
+
+    // ============ SEARCH FUNCTION ============
+    function performSearch(term) {
+        if (!term) {
+            renderMovies(allMovies.slice(0, 6));
+            renderSeries(allSeries.slice(0, 6));
+            return;
+        }
+        
+        const searchTerm = term.toLowerCase();
+        
+        const filteredMovies = allMovies.filter(m => 
+            m.title.toLowerCase().includes(searchTerm) ||
+            (m.genre && m.genre.toLowerCase().includes(searchTerm))
+        );
+        
+        const filteredSeries = allSeries.filter(s => 
+            s.title.toLowerCase().includes(searchTerm) ||
+            (s.genre && s.genre.toLowerCase().includes(searchTerm))
+        );
+        
+        renderMovies(filteredMovies);
+        renderSeries(filteredSeries);
+    }
+
+    // ============ SETUP EVENT LISTENERS ============
+    function setupEventListeners() {
+        // Search
+        if (DOM.searchInput) {
+            DOM.searchInput.addEventListener('input', (e) => performSearch(e.target.value));
+        }
+        if (DOM.searchBtn) {
+            DOM.searchBtn.addEventListener('click', () => performSearch(DOM.searchInput?.value || ''));
+        }
+        
+        // Dark Mode Toggle
+        if (DOM.darkModeToggle) {
+            DOM.darkModeToggle.addEventListener('click', toggleDarkMode);
+        }
+        
+        // Sidebar
+        if (DOM.menuToggle) {
+            DOM.menuToggle.addEventListener('click', openSidebar);
+        }
+        if (DOM.closeSidebar) {
+            DOM.closeSidebar.addEventListener('click', closeSidebar);
+        }
+        if (DOM.sidebarOverlay) {
+            DOM.sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+        
+        // Clear History
+        if (DOM.clearHistoryBtn) {
+            DOM.clearHistoryBtn.addEventListener('click', () => {
+                if (confirm('Hapus semua riwayat tontonan?')) {
+                    localStorage.removeItem('watch_history');
+                    renderContinueWatching();
+                    showToast('Riwayat dihapus');
                 }
-            } else {
-                if (episodeTitle) episodeTitle.style.display = "none";
-            }
+            });
         }
         
-        // Rekomendasi
-        if (recommendContainer) {
-            recommendContainer.innerHTML = "";
-            const all = [...allMovies, ...allSeries].filter(i => i.title !== item.title);
-            const random = all.sort(() => 0.5 - Math.random()).slice(0, 4);
-            
-            random.forEach(rec => {
-                const card = document.createElement("div");
-                card.className = "rec-card";
-                card.onclick = () => {
-                    localStorage.setItem("currentMovie", JSON.stringify(rec));
-                    window.location.reload();
-                };
-                
-                card.innerHTML = `
-                    <img src="${rec.poster || 'https://via.placeholder.com/120x160/333/e50914?text=No+Image'}" alt="${rec.title}">
-                    <span>${rec.title}</span>
-                `;
-                recommendContainer.appendChild(card);
+        // Modal close on overlay click
+        if (DOM.trailerModal) {
+            DOM.trailerModal.addEventListener('click', (e) => {
+                if (e.target === DOM.trailerModal) {
+                    closeTrailerModal();
+                }
+            });
+        }
+        
+        // Escape key to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeTrailerModal();
+                closeSidebar();
+            }
+        });
+        
+        // Install PWA
+        if (DOM.installBtn) {
+            DOM.installBtn.addEventListener('click', installPWA);
+        }
+        if (DOM.dismissInstall) {
+            DOM.dismissInstall.addEventListener('click', () => {
+                DOM.installPrompt.style.display = 'none';
+                localStorage.setItem('installPromptDismissed', 'true');
+            });
+        }
+        
+        // See All links
+        document.querySelectorAll('.see-all').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const type = link.dataset.type;
+                if (type === 'movies') {
+                    renderMovies(allMovies);
+                } else if (type === 'series') {
+                    renderSeries(allSeries);
+                }
+            });
+        });
+        
+        // History link in sidebar
+        const historyLink = document.getElementById('historyLink');
+        if (historyLink) {
+            historyLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeSidebar();
+                DOM.continueWatchingSection?.scrollIntoView({ behavior: 'smooth' });
             });
         }
     }
 
-    // ============ INIT ============
-    fetchMovies();
-    console.log("✅ Script loaded - Hero dinamis aktif");
-});
+    // ============ TOGGLE DARK MODE ============
+    function toggleDarkMode() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        if (DOM.darkModeToggle) {
+            DOM.darkModeToggle.textContent = newTheme === 'light' ? '☀️' : '🌙';
+        }
+    }
+
+    // ============ LOAD USER PREFERENCES ============
+    function loadUserPreferences() {
+        // Theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        if (DOM.darkModeToggle) {
+            DOM.darkModeToggle.textContent = savedTheme === 'light' ? '☀️' : '🌙';
+        }
+    }
+
+    // ============ SIDEBAR FUNCTIONS ============
+    function openSidebar() {
+        if (DOM.sidebar) DOM.sidebar.classList.add('active');
+        if (DOM.sidebarOverlay) DOM.sidebarOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        if (DOM.sidebar) DOM.sidebar.classList.remove('active');
+        if (DOM.sidebarOverlay) DOM.sidebarOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // ============ PWA INSTALL ============
+    function checkInstallPrompt() {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            const dismissed = localStorage.getItem('installPromptDismissed');
+            if (!dismissed && DOM.installPrompt) {
+                setTimeout(() => {
+                    DOM.installPrompt.style.display = 'block';
+                }, 3000);
+            }
+        });
+    }
+
+    function installPWA() {
+        if (!deferredPrompt) {
+            alert('Aplikasi sudah terinstall atau tidak support PWA.');
+            return;
+        }
+        
+        deferredPrompt.prompt();
+        
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted install');
+                showToast('Terima kasih! Aplikasi sedang diinstall...');
+            }
+            deferredPrompt = null;
+            DOM.installPrompt.style.display = 'none';
+        });
+    }
+
+    // ============ FALLBACK DATA ============
+    function useFallbackData() {
+        console.warn('⚠️ Using fallback data');
+        
+        allMovies = [
+            {
+                type: 'movie',
+                title: 'Bodyguard 3',
+                poster: 'https://raw.githubusercontent.com/jhonie07/nontongratis/main/bodyguard.jpg',
+                embed: 'https://www.dailymotion.com/embed/video/x9e11se',
+                genre: 'Action',
+                year: '2025',
+                views: 1250
+            },
+            {
+                type: 'movie',
+                title: 'The Raid',
+                poster: 'https://www.dailymotion.com/thumbnail/video/x918nyu',
+                embed: 'https://www.dailymotion.com/embed/video/x918nyu',
+                genre: 'Action Indo',
+                year: '2011',
+                views: 3400
+            },
+            {
+                type: 'movie',
+                title: '3 Iron',
+                poster: 'https://www.dailymotion.com/thumbnail/video/x9p1fgw',
+                embed: 'https://www.dailymotion.com/embed/video/x9p1fgw',
+                genre: 'Action',
+                year: '2004',
+                views: 890
+            }
+        ];
+        
+        allSeries = [
+            {
+                type: 'series',
+                title: 'Positively Yours Sub Indo',
+                poster: 'https://www.dailymotion.com/thumbnail/video/xa5pfsy',
+                genre: 'Drama',
+                year: '2026',
+                views: 2300,
+                episodes: [
+                    { ep: 'Episode 1', embed: 'https://www.dailymotion.com/embed/video/xa5pfsy' },
+                    { ep: 'Episode 2', embed: 'https://www.dailymotion.com/embed/video/xa5pr62' }
+                ]
+            }
+        ];
+        
+        allData = [...allMovies, ...allSeries];
+        
+        extractCategories();
+        setupHero();
+        renderCategories();
+        renderMovies(allMovies.slice(0, 6));
+        renderSeries(allSeries.slice(0, 6));
+    }
+
+    // ============ UTILITY FUNCTIONS ============
+    function showLoading(show) {
+        if (DOM.loading) {
+            DOM.loading.classList.toggle('active', show);
+        }
+    }
+
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e50914;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            z-index: 9999;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ============ EXPOSE TO WINDOW ============
+    window.closeTrailerModal = closeTrailerModal;
+    window.toggleBookmark = toggleBookmark;
+    window.openPlayer = openPlayer;
+    window.showTrailer = showTrailer;
+    window.allData = allData;
+
+    console.log('✅ Script.js v2.0 loaded successfully!');
+})();
