@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // ============ KONFIGURASI ADSTERRA LENGKAP ============
     const ADS = {
         // Banner 300x250
-        bannerKey: 'bd2a1bd4de40671fbaa0ab7f123c6cab',
+        bannerKey: 'b89b210b53a5733689e641617800809f',
         
         // Pop-under Script
         popScript: 'https://pl29191017.profitablecpmratenetwork.com/13/ac/57/13ac573259f9ac689cf966e9075b8096.js',
