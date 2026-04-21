@@ -2,22 +2,115 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Nonton Gratis - Streaming Film Sub Indo</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="assets/style.css">
+    
+    <!-- ============ SEO META TAGS ============ -->
+    <title>Nonton Gratis - Streaming Film Action, Drama, Series Sub Indo</title>
+    <meta name="title" content="Nonton Gratis - Streaming Film Action, Drama, Series Sub Indo">
+    <meta name="description" content="Nonton film dan series terbaru subtitle Indonesia. Streaming gratis Bodyguard 3, The Raid, Positively Yours, dan banyak lagi! Update setiap hari.">
+    <meta name="keywords" content="nonton film, streaming gratis, film sub indo, drama korea, action movie, nontongratis, lk21, indoxxi, series sub indo">
+    <meta name="author" content="Nonton Gratis">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="rating" content="general">
+    <meta name="language" content="Indonesian">
+    <meta name="revisit-after" content="1 days">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nontongratis.online/">
+    <meta property="og:title" content="Nonton Gratis - Streaming Film Sub Indo Terbaru">
+    <meta property="og:description" content="Nonton film dan series terbaru subtitle Indonesia. Gratis! Tanpa registrasi.">
+    <meta property="og:image" content="https://nontongratis.online/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Nonton Gratis">
+    <meta property="og:locale" content="id_ID">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://nontongratis.online/">
+    <meta name="twitter:title" content="Nonton Gratis - Streaming Film Sub Indo">
+    <meta name="twitter:description" content="Nonton film dan series terbaru subtitle Indonesia. Gratis!">
+    <meta name="twitter:image" content="https://nontongratis.online/og-image.jpg">
+    <meta name="twitter:site" content="@nontongratis">
+    
+    <!-- Canonical -->
+    <link rel="canonical" href="https://nontongratis.online/">
+    
+    <!-- Alternate Languages -->
+    <link rel="alternate" hreflang="id" href="https://nontongratis.online/">
+    <link rel="alternate" hreflang="x-default" href="https://nontongratis.online/">
+    
+    <!-- ============ PWA MANIFEST ============ -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#e50914">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nonton Gratis">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    
+    <!-- Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     
     <!-- Preconnect -->
     <link rel="preconnect" href="https://www.highperformanceformat.com">
     <link rel="preconnect" href="https://pl29191016.profitablecpmratenetwork.com">
     <link rel="preconnect" href="https://pl29191017.profitablecpmratenetwork.com">
+    <link rel="preconnect" href="https://www.dailymotion.com">
+    <link rel="preconnect" href="https://www.youtube.com">
+    
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- ============ HEADER ============ -->
 <header>
-    <h1 class="logo">🎬 NONTON GRATIS</h1>
-    <input type="text" id="search" placeholder="🔍 Cari film...">
+    <div class="header-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+        <h1 class="logo">🎬 NONTON GRATIS</h1>
+    </div>
+    
+    <div class="header-center">
+        <div class="search-wrapper">
+            <input type="text" id="search" placeholder="🔍 Cari film atau series..." aria-label="Search">
+            <button class="search-btn" id="searchBtn">Cari</button>
+        </div>
+    </div>
+    
+    <div class="header-right">
+        <button class="icon-btn" id="darkModeToggle" aria-label="Dark Mode">🌙</button>
+        <a href="bookmarks.html" class="icon-btn" aria-label="Bookmarks">🔖</a>
+        <a href="request.html" class="icon-btn" aria-label="Request Film">📝</a>
+    </div>
 </header>
+
+<!-- ============ SIDEBAR MENU (MOBILE) ============ -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3>Menu</h3>
+        <button class="close-sidebar" id="closeSidebar">✕</button>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="/">🏠 Home</a></li>
+        <li><a href="bookmarks.html">🔖 Bookmarks</a></li>
+        <li><a href="request.html">📝 Request Film</a></li>
+        <li><a href="#" id="historyLink">🕐 Continue Watching</a></li>
+        <li><hr></li>
+        <li><a href="about.html">ℹ️ About</a></li>
+        <li><a href="contact.html">📞 Contact</a></li>
+        <li><a href="privacy.html">🔒 Privacy</a></li>
+    </ul>
+</nav>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- ============ HERO VIDEO SECTION (DINAMIS) ============ -->
 <section id="hero">
@@ -27,12 +120,18 @@
             src="" 
             frameborder="0" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen>
+            allowfullscreen
+            loading="eager">
         </iframe>
         <div class="hero-overlay">
+            <span class="hero-badge">🔥 TRENDING #1</span>
             <h2 id="heroTitle">🔥 SEDANG TRENDING</h2>
             <p id="heroInfo">Loading...</p>
-            <button class="hero-btn" id="heroWatchBtn">▶ Tonton Sekarang</button>
+            <div class="hero-actions">
+                <button class="hero-btn primary" id="heroWatchBtn">▶ Tonton Sekarang</button>
+                <button class="hero-btn secondary" id="heroTrailerBtn">🎬 Trailer</button>
+                <button class="hero-btn bookmark" id="heroBookmarkBtn">🔖 Simpan</button>
+            </div>
         </div>
     </div>
 </section>
@@ -42,13 +141,20 @@
     <div id="bannerTop" class="ad-slot"></div>
 </div>
 
-<!-- ============ KATEGORI ============ -->
-<h2 class="section-title">📂 Kategori</h2>
-<div id="categories"></div>
+<!-- ============ QUICK FILTERS ============ -->
+<div class="quick-filters">
+    <h2 class="section-title">📂 Kategori</h2>
+    <div id="categories" class="categories-wrapper"></div>
+</div>
 
 <!-- ============ FILM TERBARU ============ -->
-<h2 class="section-title">🎥 Film Terbaru</h2>
-<div id="movies"></div>
+<section class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">🎥 Film Terbaru</h2>
+        <a href="#" class="see-all" data-type="movies">Lihat Semua →</a>
+    </div>
+    <div id="movies" class="movie-grid"></div>
+</section>
 
 <!-- ============ BANNER IKLAN TENGAH ============ -->
 <div class="ad-container">
@@ -56,25 +162,110 @@
 </div>
 
 <!-- ============ SERIES TERBARU ============ -->
-<h2 class="section-title">📺 Series Terbaru</h2>
-<div id="series"></div>
+<section class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">📺 Series Terbaru</h2>
+        <a href="#" class="see-all" data-type="series">Lihat Semua →</a>
+    </div>
+    <div id="series" class="movie-grid"></div>
+</section>
+
+<!-- ============ CONTINUE WATCHING ============ -->
+<section class="content-section" id="continueWatchingSection" style="display: none;">
+    <div class="section-header">
+        <h2 class="section-title">🕐 Lanjutkan Nonton</h2>
+        <button class="clear-history" id="clearHistoryBtn">Hapus History</button>
+    </div>
+    <div id="continueWatching" class="movie-grid"></div>
+</section>
 
 <!-- ============ BANNER IKLAN BAWAH ============ -->
 <div class="ad-container">
     <div id="bannerBottom" class="ad-slot"></div>
 </div>
 
-<!-- MODAL DETAIL -->
-<div id="modal" class="modal">
-    <div class="modal-content" id="modalBody"></div>
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>Nonton Gratis</h3>
+            <p>Streaming film dan series subtitle Indonesia gratis. Update setiap hari.</p>
+        </div>
+        <div class="footer-section">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="privacy.html">Privacy Policy</a></li>
+                <li><a href="request.html">Request Film</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h4>Follow Us</h4>
+            <div class="social-links">
+                <a href="#" aria-label="Telegram">📱</a>
+                <a href="#" aria-label="WhatsApp">💬</a>
+                <a href="#" aria-label="Instagram">📷</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2026 Nonton Gratis. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- ============ TRAILER MODAL ============ -->
+<div id="trailerModal" class="modal">
+    <div class="modal-content trailer-content">
+        <button class="modal-close" onclick="closeTrailerModal()">✕</button>
+        <div class="trailer-container">
+            <iframe id="trailerFrame" frameborder="0" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+        </div>
+    </div>
 </div>
 
-<!-- LOADING -->
-<div id="loading">⏳ Loading...</div>
+<!-- ============ LOADING ============ -->
+<div id="loading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Loading...</p>
+</div>
 
-<!-- JAVASCRIPT -->
+<!-- ============ INSTALL PWA PROMPT ============ -->
+<div id="installPrompt" class="install-prompt" style="display: none;">
+    <div class="install-prompt-content">
+        <span>📱 Install aplikasi Nonton Gratis?</span>
+        <div>
+            <button id="installBtn" class="btn-primary">Install</button>
+            <button id="dismissInstall" class="btn-secondary">Nanti</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ JAVASCRIPT ============ -->
 <script src="assets/ads.js"></script>
 <script src="assets/script.js"></script>
+
+<!-- Service Worker Registration -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(registration => {
+                console.log('✅ Service Worker registered:', registration.scope);
+            }).catch(error => {
+                console.log('❌ Service Worker registration failed:', error);
+            });
+        });
+    }
+</script>
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+</script>
 
 </body>
 </html>
