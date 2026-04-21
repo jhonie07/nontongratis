@@ -1,3 +1,14 @@
+# Nonton Gratis Robots.txt
 User-agent: *
 Allow: /
-Sitemap: https://jhonie07.github.io/nontongratis/sitemap.xml
+Disallow: /admin/
+Disallow: /assets/js/firebase-config.js
+
+# Crawl-delay
+Crawl-delay: 5
+
+# Sitemap
+Sitemap: https://nontongratis.online/sitemap.xml
+
+# Host
+Host: https://nontongratis.online
