@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Offline - Nonton Gratis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+        }
+        .offline-container {
+            text-align: center;
+            max-width: 400px;
+        }
+        .offline-icon { font-size: 5rem; margin-bottom: 20px; }
+        h1 { color: #e50914; margin-bottom: 15px; }
+        p { color: #ccc; margin-bottom: 30px; line-height: 1.6; }
+        .btn {
+            display: inline-block;
+            padding: 14px 30px;
+            background: #e50914;
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .status { margin-top: 30px; color: #888; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡❌</div>
+        <h1>Kamu Sedang Offline</h1>
+        <p>Tidak ada koneksi internet. Tapi jangan khawatir, kamu masih bisa mengakses halaman yang sudah pernah dikunjungi sebelumnya.</p>
+        <a href="/" class="btn">🔄 Coba Lagi</a>
+        <p class="status" id="status">Memeriksa koneksi...</p>
+    </div>
+
+    <script>
+        // Check connection status
+        const statusEl = document.getElementById('status');
+        
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                statusEl.textContent = '✅ Koneksi tersedia! Mengalihkan...';
+                statusEl.style.color = '#4CAF50';
+                setTimeout(() => window.location.href = '/', 1000);
+            } else {
+                statusEl.textContent = '❌ Masih offline';
+                statusEl.style.color = '#888';
+            }
+        }
+        
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+        
+        // Auto reload when online
+        setInterval(() => {
+            if (navigator.onLine) {
+                window.location.href = '/';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
